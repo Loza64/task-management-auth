@@ -1,0 +1,17 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: task-management-api
+    restart: unless-stopped
+    ports:
+      - "${PORT:-4200}:${PORT:-4200}"
+    env_file:
+      - .env
+    networks:
+      - mongo_network
+
+networks:
+  mongo_network:
+    external: true
