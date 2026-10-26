@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: task-management-api
+    container_name: task-management-auth
     restart: unless-stopped
     ports:
       - "${PORT:-4200}:${PORT:-4200}"
