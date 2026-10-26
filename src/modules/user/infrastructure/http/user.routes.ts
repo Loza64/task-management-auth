@@ -42,7 +42,7 @@ export const buildUserRouter = (controller: UserController): Router => {
    * @swagger
    * /api/users/{id}:
    *   get:
-   *     summary: Obtiene el usuario autenticado con su arreglo de tareas
+   *     summary: Obtiene un usuario con su arreglo de tareas
    *     tags: [Users]
    *     security:
    *       - bearerAuth: []
@@ -58,8 +58,6 @@ export const buildUserRouter = (controller: UserController): Router => {
    *         description: Id inválido
    *       401:
    *         description: Token ausente, inválido o expirado
-   *       403:
-   *         description: Solo puedes consultar tu propio usuario
    *       404:
    *         description: Usuario no encontrado
    */

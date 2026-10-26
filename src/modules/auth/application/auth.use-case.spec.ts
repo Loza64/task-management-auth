@@ -3,7 +3,7 @@ import { UserRepository } from '../../user/domain/user.repository';
 import { PasswordHasher } from '../domain/password-hasher';
 import { TokenService } from '../domain/token-service';
 import { LoginUseCase } from './login.use-case';
-import { RegisterUseCase } from './register.use-case';
+import { SignupUseCase } from './signup.use-case';
 
 const makeUser = () =>
   Object.assign(new User(), { id: 'u1', name: 'Ana', username: 'ana', password: 'stored-hash' });
@@ -27,8 +27,8 @@ describe('auth use cases', () => {
     userRepository.create.mockImplementation(async (user) => user);
   });
 
-  describe('RegisterUseCase', () => {
-    const useCase = new RegisterUseCase(userRepository, passwordHasher);
+  describe('SignupUseCase', () => {
+    const useCase = new SignupUseCase(userRepository, passwordHasher);
 
     it('409 when the username is already taken', async () => {
       userRepository.findByUsername.mockResolvedValue(makeUser());

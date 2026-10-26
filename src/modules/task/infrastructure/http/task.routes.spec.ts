@@ -17,7 +17,7 @@ describe('task routes (auth and validation layers)', () => {
     expect(res.headers['content-type']).toContain('application/json');
     expect(res.body.openapi).toBe('3.0.0');
     expect(Object.keys(res.body.paths)).toEqual(
-      expect.arrayContaining(['/api/tasks', '/api/auth/login', '/api/auth/register', '/api/users/{id}']),
+      expect.arrayContaining(['/api/tasks', '/api/auth/login', '/api/auth/signup', '/api/users/{id}']),
     );
     expect(res.body.components.securitySchemes.bearerAuth.scheme).toBe('bearer');
   });

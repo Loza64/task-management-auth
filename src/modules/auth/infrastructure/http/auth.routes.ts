@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { validateDTO } from '../../../../shared/middlewares/validate-dto.middleware';
 import { LoginDto } from '../../application/login.dto';
-import { RegisterDto } from '../../application/register.dto';
+import { SignupDto } from '../../application/signup.dto';
 import { AuthController } from './auth.controller';
 
 export const buildAuthRouter = (controller: AuthController): Router => {
@@ -9,7 +9,7 @@ export const buildAuthRouter = (controller: AuthController): Router => {
 
   /**
    * @swagger
-   * /api/auth/register:
+   * /api/auth/signup:
    *   post:
    *     summary: Registra un usuario
    *     tags: [Auth]
@@ -18,7 +18,7 @@ export const buildAuthRouter = (controller: AuthController): Router => {
    *       content:
    *         application/json:
    *           schema:
-   *             $ref: '#/components/schemas/RegisterDto'
+   *             $ref: '#/components/schemas/SignupDto'
    *     responses:
    *       201:
    *         description: Usuario creado
@@ -27,7 +27,7 @@ export const buildAuthRouter = (controller: AuthController): Router => {
    *       409:
    *         description: El username ya está en uso
    */
-  router.post('/register', validateDTO(RegisterDto), controller.register);
+  router.post('/signup', validateDTO(SignupDto), controller.signup);
 
   /**
    * @swagger

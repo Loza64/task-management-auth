@@ -5,7 +5,7 @@ const trim = ({ value }: { value: unknown }) => (typeof value === 'string' ? val
 const normalizeUsername = ({ value }: { value: unknown }) =>
   typeof value === 'string' ? value.trim().toLowerCase() : value;
 
-export class RegisterDto {
+export class SignupDto {
   @Transform(trim)
   @IsString()
   @MinLength(2)

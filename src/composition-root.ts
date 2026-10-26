@@ -1,5 +1,5 @@
 import { LoginUseCase } from './modules/auth/application/login.use-case';
-import { RegisterUseCase } from './modules/auth/application/register.use-case';
+import { SignupUseCase } from './modules/auth/application/signup.use-case';
 import { AuthController } from './modules/auth/infrastructure/http/auth.controller';
 import { buildAuthenticate } from './modules/auth/infrastructure/http/authenticate.middleware';
 import { BcryptPasswordHasher } from './modules/auth/infrastructure/security/bcrypt-password-hasher';
@@ -27,7 +27,7 @@ export const buildContainer = () => {
   const tokenService = new JwtTokenService(env.JWT_SECRET, env.JWT_EXPIRES_IN_SECONDS);
 
   const authController = new AuthController(
-    new RegisterUseCase(userRepository, passwordHasher),
+    new SignupUseCase(userRepository, passwordHasher),
     new LoginUseCase(userRepository, passwordHasher, tokenService),
   );
 

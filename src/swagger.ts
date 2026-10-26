@@ -1,7 +1,10 @@
+import path from 'path';
 import swaggerJsdoc from 'swagger-jsdoc';
 import { buildSwaggerDefinitions } from './shared/swagger/schemas';
 
-const isProd = process.env.NODE_ENV === 'production';
+const routesGlob = path
+  .join(__dirname, 'modules', '**', 'infrastructure', 'http', '*.routes.{ts,js}')
+  .replace(/\\/g, '/');
 
 const options: swaggerJsdoc.Options = {
   definition: {
@@ -19,11 +22,8 @@ const options: swaggerJsdoc.Options = {
       },
     },
   },
-  apis: [
-    isProd
-      ? './build/modules/**/infrastructure/http/*.routes.js'
-      : './src/modules/**/infrastructure/http/*.routes.ts',
-  ],
+  apis: [routesGlob],
+  failOnErrors: true,
 };
 
 export const swaggerSpec = swaggerJsdoc(options);

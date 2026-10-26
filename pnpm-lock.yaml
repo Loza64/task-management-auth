@@ -1934,12 +1934,12 @@ packages:
     engines: {node: ^18.14.0 || ^20.0.0 || ^22.0.0 || >=24.0.0}
     peerDependencies:
       '@types/node': '*'
-      esbuild-register: '>=3.4.0'
+      esbuild-signup: '>=3.4.0'
       ts-node: '>=9.0.0'
     peerDependenciesMeta:
       '@types/node':
         optional: true
-      esbuild-register:
+      esbuild-signup:
         optional: true
       ts-node:
         optional: true
@@ -3304,7 +3304,7 @@ snapshots:
       slash: 3.0.0
     transitivePeerDependencies:
       - babel-plugin-macros
-      - esbuild-register
+      - esbuild-signup
       - supports-color
       - ts-node
 
@@ -4787,7 +4787,7 @@ snapshots:
     transitivePeerDependencies:
       - '@types/node'
       - babel-plugin-macros
-      - esbuild-register
+      - esbuild-signup
       - supports-color
       - ts-node
 
@@ -5045,7 +5045,7 @@ snapshots:
     transitivePeerDependencies:
       - '@types/node'
       - babel-plugin-macros
-      - esbuild-register
+      - esbuild-signup
       - supports-color
       - ts-node
 

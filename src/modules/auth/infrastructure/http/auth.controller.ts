@@ -1,16 +1,16 @@
 import { NextFunction, Request, Response } from 'express';
 import { LoginUseCase } from '../../application/login.use-case';
-import { RegisterUseCase } from '../../application/register.use-case';
+import { SignupUseCase } from '../../application/signup.use-case';
 
 export class AuthController {
   constructor(
-    private readonly registerUseCase: RegisterUseCase,
+    private readonly signupUseCase: SignupUseCase,
     private readonly loginUseCase: LoginUseCase,
   ) {}
 
-  register = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  signup = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const user = await this.registerUseCase.execute(req.body);
+      const user = await this.signupUseCase.execute(req.body);
       res.status(201).json({ data: user.toPublic() });
     } catch (err) {
       next(err);

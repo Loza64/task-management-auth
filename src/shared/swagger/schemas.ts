@@ -3,7 +3,7 @@ import { createRequire } from 'module';
 import { validationMetadatasToSchemas } from 'class-validator-jsonschema';
 
 import '../pagination/pagination-query.dto';
-import '../../modules/auth/application/register.dto';
+import '../../modules/auth/application/signup.dto';
 import '../../modules/auth/application/login.dto';
 import '../../modules/task/application/create-task.dto';
 import '../../modules/task/application/update-task.dto';

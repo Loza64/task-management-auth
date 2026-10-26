@@ -60,9 +60,9 @@ Luego inicia el servidor:
 pnpm dev
 ```
 
-- API: `http://localhost:4200/api`
-- Documentación Swagger: `http://localhost:4200/api-docs` (botón **Authorize** para pegar el token)
-- Especificación OpenAPI en JSON: `http://localhost:4200/api-docs.json`
+- API: `http://localhost:4000/api`
+- Documentación Swagger: `http://localhost:4000/api-docs` (botón **Authorize** para pegar el token)
+- Especificación OpenAPI en JSON: `http://localhost:4000/api-docs.json`
 
 Para producción:
 
@@ -79,7 +79,7 @@ Se leen desde `.env` (ver `.env.example`).
 
 | Variable | Por defecto | Descripción |
 |---|---|---|
-| `PORT` | `4200` | Puerto HTTP |
+| `PORT` | `4000` | Puerto HTTP |
 | `NODE_ENV` | `development` | En `development` los errores 500 incluyen el mensaje real; en otros valores devuelven un mensaje genérico |
 | `ORIGIN` | vacío | Orígenes permitidos por CORS, separados por coma. Vacío permite cualquier origen (`*`) y desactiva `credentials` |
 | `MONGO_URI` | `mongodb://localhost:27017/tasks_db` | Cadena de conexión a MongoDB. Con el contenedor de este proyecto lleva usuario, contraseña y `authSource=admin` (ver [Base de datos con Docker](#base-de-datos-con-docker)) |
@@ -132,7 +132,7 @@ Dos colecciones relacionadas en ambos sentidos: cada tarea apunta a su usuario (
 ## Autenticación y autorización
 
 **Registro e inicio de sesión**
-- `POST /api/auth/register` crea el usuario. La contraseña se guarda con bcrypt (costo configurable) y nunca se devuelve.
+- `POST /api/auth/signup` crea el usuario. La contraseña se guarda con bcrypt (costo configurable) y nunca se devuelve.
 - `POST /api/auth/login` verifica las credenciales y devuelve un token JWT firmado con HS256, con el id del usuario en `sub` y vigencia de `JWT_EXPIRES_IN_SECONDS`.
 - El inicio de sesión es con `username` y `password`. El `username` no distingue mayúsculas de minúsculas.
 - Un username desconocido y una contraseña incorrecta responden lo mismo (`401 Credenciales inválidas`), y en ambos casos se calcula una comparación de hash para no revelar por tiempo de respuesta si el usuario existe.
@@ -146,10 +146,9 @@ Authorization: Bearer <accessToken>
 Todas las rutas `/api/tasks` y `/api/users` exigen el token. Se rechazan con `401` los tokens ausentes, mal formados, con firma distinta, con otro algoritmo (incluido `none`) o vencidos.
 
 **Control de acceso**
-- Cada usuario solo ve y modifica sus propias tareas. La lista se filtra por el usuario del token y las operaciones por id incluyen al dueño en la consulta.
-- Pedir una tarea ajena responde `404`, igual que una inexistente, para no revelar que existe.
-- `GET /api/users` lista a todos los usuarios con sus datos públicos, pero sin sus tareas.
-- `GET /api/users/:id`, que sí incluye las tareas, solo permite consultar el propio usuario; otro id responde `403`.
+- **Usuarios, visibles para todos los autenticados.** Cualquier usuario con token puede listar a los demás (`GET /api/users`, sin tareas) y consultar a cualquiera por id (`GET /api/users/:id`, con su arreglo de tareas). Solo se exponen datos públicos: nunca el `password`.
+- **Tareas, solo para su dueño.** Cada usuario crea, edita, cambia de estado, completa y elimina únicamente sus propias tareas. La lista `/api/tasks` se filtra por el usuario del token y las operaciones por id incluyen al dueño en la consulta.
+- Pedir o modificar una tarea ajena por `/api/tasks/:id` responde `404`, igual que una inexistente. Ver las tareas de otro usuario es posible solo a través de `GET /api/users/:id`, en modo lectura.
 
 ## Gestión de estados
 
@@ -170,15 +169,15 @@ pending ⇄ in_progress ⇄ completed
 
 | Método | Ruta | Descripción | Éxito | Errores |
 |---|---|---|---|---|
-| POST | `/api/auth/register` | Registra un usuario | 201 | 400, 409 |
+| POST | `/api/auth/signup` | Registra un usuario | 201 | 400, 409 |
 | POST | `/api/auth/login` | Devuelve el token de acceso | 200 | 400, 401 |
 
 ```bash
-curl -X POST http://localhost:4200/api/auth/register \
+curl -X POST http://localhost:4000/api/auth/signup \
   -H "Content-Type: application/json" \
   -d '{ "name": "Ana", "username": "ana", "password": "secret123" }'
 
-curl -X POST http://localhost:4200/api/auth/login \
+curl -X POST http://localhost:4000/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{ "username": "ana", "password": "secret123" }'
 ```
@@ -205,12 +204,12 @@ curl -X POST http://localhost:4200/api/auth/login \
 | Método | Ruta | Descripción | Éxito | Errores |
 |---|---|---|---|---|
 | GET | `/api/users` | Lista paginada de usuarios, sin tareas | 200 | 400, 401 |
-| GET | `/api/users/:id` | Usuario con su arreglo de tareas | 200 | 400, 401, 403, 404 |
+| GET | `/api/users/:id` | Cualquier usuario con su arreglo de tareas | 200 | 400, 401, 404 |
 
 **Listar usuarios**
 
 ```bash
-curl "http://localhost:4200/api/users?search=ana&page=1&pageSize=10" \
+curl "http://localhost:4000/api/users?search=ana&page=1&pageSize=10" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
@@ -232,6 +231,13 @@ Acepta `page`, `pageSize` (1 a 100) y `search`, que busca sin distinguir mayúsc
 ```
 
 **Usuario con sus tareas**
+
+```bash
+curl http://localhost:4000/api/users/6adec2ff9b426dbe09aab4c2 \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+Funciona con el id de cualquier usuario, no solo el propio.
 
 ```json
 {
@@ -277,7 +283,7 @@ Todos los ejemplos siguientes asumen `-H "Authorization: Bearer $TOKEN"`.
 ### Crear
 
 ```bash
-curl -X POST http://localhost:4200/api/tasks \
+curl -X POST http://localhost:4000/api/tasks \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{ "title": "Escribir informe", "description": "Resumen del trimestre" }'
@@ -307,7 +313,7 @@ curl -X POST http://localhost:4200/api/tasks \
 ### Listar
 
 ```bash
-curl "http://localhost:4200/api/tasks?status=pending&search=informe&page=1&pageSize=10" \
+curl "http://localhost:4000/api/tasks?status=pending&search=informe&page=1&pageSize=10" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
@@ -337,7 +343,7 @@ Parámetros desconocidos se rechazan con `400`. Orden fijo: más recientes prime
 ### Actualizar
 
 ```bash
-curl -X PATCH http://localhost:4200/api/tasks/6adec3009b426dbe09aab4c4 \
+curl -X PATCH http://localhost:4000/api/tasks/6adec3009b426dbe09aab4c4 \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{ "title": "Informe trimestral", "description": null }'
@@ -348,19 +354,19 @@ Debe incluir al menos `title` o `description`. Enviar `description` como `null` 
 ### Cambiar estado y completar
 
 ```bash
-curl -X PATCH http://localhost:4200/api/tasks/6adec3009b426dbe09aab4c4/status \
+curl -X PATCH http://localhost:4000/api/tasks/6adec3009b426dbe09aab4c4/status \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{ "status": "in_progress" }'
 
-curl -X PATCH http://localhost:4200/api/tasks/6adec3009b426dbe09aab4c4/complete \
+curl -X PATCH http://localhost:4000/api/tasks/6adec3009b426dbe09aab4c4/complete \
   -H "Authorization: Bearer $TOKEN"
 ```
 
 ### Eliminar
 
 ```bash
-curl -X DELETE http://localhost:4200/api/tasks/6adec3009b426dbe09aab4c4 \
+curl -X DELETE http://localhost:4000/api/tasks/6adec3009b426dbe09aab4c4 \
   -H "Authorization: Bearer $TOKEN"
 ```
 
@@ -387,8 +393,7 @@ Aplicadas antes de llegar a los casos de uso:
 |---|---|
 | 400 | Cuerpo, query o id inválidos; actualización sin campos |
 | 401 | Token ausente, inválido o vencido; credenciales incorrectas |
-| 403 | Consultar un usuario distinto al autenticado |
-| 404 | La tarea (o el usuario) no existe o no te pertenece |
+| 404 | El usuario no existe, o la tarea no existe o no te pertenece |
 | 409 | Username ya en uso; la tarea ya está en el estado solicitado |
 | 500 | Error inesperado |
 
@@ -434,8 +439,8 @@ Flujo de una petición a una tarea: ruta → `authenticate` (token → `req.auth
 - **Relación en ambos sentidos.** `Task.user` y `User.tasks` se guardan como referencias y se resuelven con `populate`. Es lo que permite que la tarea muestre su usuario y el usuario su arreglo de tareas.
 - **Consistencia sin transacciones.** Crear una tarea escribe en dos colecciones. Si falla el segundo paso, el caso de uso borra la tarea recién creada y relanza el error. Al eliminar, se borra la tarea y luego se quita del arreglo; si ese último paso fallara, `populate` ignora las referencias huérfanas. MongoDB sin réplica no ofrece transacciones, por eso se compensa a mano.
 - **Sin referencias circulares.** Una tarea incluye su `user` (sin `tasks`), y un usuario incluye sus `tasks` (sin `user` en cada una).
-- **Listado de usuarios.** Cualquier usuario autenticado puede listar a los demás, pero solo con datos públicos. Las tareas de un usuario solo las ve su dueño.
-- **Propiedad del recurso.** El dueño se toma siempre del token. Las consultas por id incluyen `{ _id, user }`, así que un usuario no puede alcanzar tareas ajenas ni siquiera conociendo el id.
+- **Visibilidad de usuarios.** Cualquier usuario autenticado puede listar y consultar a los demás, incluidas sus tareas en `GET /api/users/:id`, pero solo con datos públicos. La lista de usuarios nunca carga las tareas.
+- **Propiedad de las tareas.** El dueño se toma siempre del token. Las consultas por id de `/api/tasks` incluyen `{ _id, user }`, así que un usuario no puede modificar ni leer por esa vía tareas ajenas, aunque conozca el id.
 - **Token de acceso sin refresh.** Se emite un único JWT con vigencia corta. No hay revocación: un token es válido hasta que vence.
 - **Índices antes de tráfico.** En el arranque se espera a que Mongoose cree los índices; sin eso, el índice único de `username` podría no existir en una base nueva y permitir duplicados si llegan registros simultáneos.
 - **Estado controlado.** Cambiar el estado tiene endpoints propios para que `PATCH /:id` no lo altere por accidente y `completedAt` siempre sea consistente.
@@ -455,10 +460,10 @@ No requieren base de datos:
 - Casos de uso con repositorios simulados: reglas de tareas y su propiedad, registro y login.
 - Seguridad: hash bcrypt y JWT (firma ajena, token manipulado, vencido y con algoritmo `none`).
 - DTOs: casos válidos e inválidos de tareas y autenticación.
-- Rutas HTTP con Supertest: acceso sin token, validación de cuerpo, query e id, acceso a otro usuario y la ruta `/api-docs.json`.
+- Rutas HTTP con Supertest: acceso sin token, validación de cuerpo, query e id y la ruta `/api-docs.json`.
 - Repositorios de tareas y usuarios: filtros, populate y mapeo de paginación con `paginate` simulado.
 
-Las pruebas automáticas no ejecutan consultas reales a MongoDB. El flujo completo (registro, login, CRUD, aislamiento entre usuarios, `populate` en ambos sentidos y registro duplicado simultáneo y listado de usuarios) se verificó manualmente contra una instancia real; conviene repetirlo desde `/api-docs` en tu entorno.
+Las pruebas automáticas no ejecutan consultas reales a MongoDB. El flujo completo (registro, login, CRUD, aislamiento de las tareas entre usuarios, consulta de otros usuarios con sus tareas, `populate` en ambos sentidos y registro duplicado simultáneo y listado de usuarios) se verificó manualmente contra una instancia real; conviene repetirlo desde `/api-docs` en tu entorno.
 
 ## Base de datos con Docker
 
@@ -511,5 +516,5 @@ docker compose up --build
 - `docker-compose.yaml` define solo el servicio `api` y lo une a la red externa `mongo_network`. Esa red debe existir antes, es decir, el contenedor de Mongo debe haberse levantado primero.
 - La configuración sale del `.env`: `MONGO_URI` (con el host `some-mongo` dentro de Docker) y `JWT_SECRET`, que es obligatorio.
 - El `Dockerfile` es multi-etapa: instala con `--frozen-lockfile`, ejecuta `pnpm test` y `pnpm build`, y la imagen final corre como usuario sin privilegios.
-- El puerto publicado es el definido en `PORT` (4200 si no se define).
+- El puerto publicado es el definido en `PORT` (4000 si no se define).
 - Si Mongo no está disponible al arrancar, la API termina con error y `restart: unless-stopped` la reinicia hasta que pueda conectarse.
